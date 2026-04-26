@@ -200,7 +200,7 @@
             </div>
  
             <!-- Monetag Ad -->
-            <script src='//libtl.com/sdk.js' data-zone='10924924' data-sdk='show_10924924'></script>
+            <script>(function(s){s.dataset.zone='10928306',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
  
             <button class="watch-btn" id="watchBtn" onclick="showVideo()">
                 ⏳ অপেক্ষা করুন...
@@ -228,11 +228,6 @@
     document.getElementById('headerTitle').textContent = title;
  
     function getYTId(url) {
-        if (!url) return null;
-        // youtu.be/ID format
-        const short = url.match(/youtu\.be\/([^?&]+)/);
-        if (short) return short[1];
-        // youtube.com/watch?v=ID format
         const m = url.match(/[?&]v=([^&]+)/);
         return m ? m[1] : null;
     }
