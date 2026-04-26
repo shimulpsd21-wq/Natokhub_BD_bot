@@ -5,9 +5,9 @@
 // ✅ নতুন SERIES/NATOK যোগ করতে নিচের format copy করুন
 const series = [
     {
-        id: "bp5",
+        id: "Natok 1",
         name: "new natok",
-        category: "Update",
+        category: "Natok",
         totalEp: 2,
         episodes: [
             { ep: 1, title: "natok 1", youtube: "https://youtu.be/5EW5tCqw4FU?si=KIZMWpp1QMDKTnT1" },
