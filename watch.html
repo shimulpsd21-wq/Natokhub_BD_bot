@@ -21,7 +21,7 @@
             font-family: 'Baloo Da 2', cursive;
             min-height: 100vh;
         }
-
+ 
         .header {
             background: #111;
             border-bottom: 2px solid var(--accent);
@@ -48,12 +48,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
+ 
         .container { padding: 16px; max-width: 480px; margin: 0 auto; }
-
+ 
         /* AD SECTION */
         #adSection { animation: fadeIn 0.4s ease; }
-
+ 
         .ad-card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -62,9 +62,9 @@
             text-align: center;
             margin-bottom: 16px;
         }
-
+ 
         .timer-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
-
+ 
         .timer-circle {
             width: 90px;
             height: 90px;
@@ -82,7 +82,7 @@
             color: var(--accent);
         }
         .timer-text { font-size: 13px; color: var(--muted); }
-
+ 
         .ad-placeholder {
             background: #111;
             border: 1px dashed var(--border);
@@ -98,7 +98,7 @@
             flex-direction: column;
             gap: 4px;
         }
-
+ 
         .watch-btn {
             background: var(--accent);
             color: white;
@@ -122,10 +122,10 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,59,0.4); }
             50% { box-shadow: 0 0 0 12px rgba(255,59,59,0); }
         }
-
+ 
         /* VIDEO SECTION */
         #videoSection { display: none; animation: fadeIn 0.5s ease; }
-
+ 
         .video-title-bar {
             background: var(--card);
             border: 1px solid var(--border);
@@ -145,7 +145,7 @@
             margin-bottom: 12px;
         }
         .video-wrap iframe { width: 100%; height: 100%; border: none; }
-
+ 
         .action-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -167,7 +167,7 @@
             transition: all 0.2s;
         }
         .action-btn:hover { border-color: var(--accent); }
-
+ 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -175,19 +175,19 @@
     </style>
 </head>
 <body>
-
+ 
 <div class="header">
     <button class="back-btn" onclick="window.location.href='index.html'">← ফিরুন</button>
     <div class="header-title" id="headerTitle">NatoHub BD</div>
 </div>
-
+ 
 <div class="container">
-
+ 
     <!-- AD -->
     <div id="adSection">
         <div class="ad-card">
             <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">ভিডিও শুরু হচ্ছে...</div>
-
+ 
             <div class="timer-wrap">
                 <div class="timer-circle">
                     <svg viewBox="0 0 90 90" width="90" height="90">
@@ -198,16 +198,16 @@
                 </div>
                 <div class="timer-text">সেকেন্ড পর ভিডিও শুরু হবে</div>
             </div>
-
+ 
             <!-- Monetag Ad -->
             <script src='//libtl.com/sdk.js' data-zone='10924924' data-sdk='show_10924924'></script>
-
+ 
             <button class="watch-btn" id="watchBtn" onclick="showVideo()">
                 ⏳ অপেক্ষা করুন...
             </button>
         </div>
     </div>
-
+ 
     <!-- VIDEO -->
     <div id="videoSection">
         <div class="video-title-bar" id="videoTitle">🎬</div>
@@ -220,36 +220,41 @@
         </div>
     </div>
 </div>
-
+ 
 <script>
     const ytUrl = localStorage.getItem('watchUrl') || '';
     const title = localStorage.getItem('watchTitle') || 'ভিডিও';
-
+ 
     document.getElementById('headerTitle').textContent = title;
-
+ 
     function getYTId(url) {
+        if (!url) return null;
+        // youtu.be/ID format
+        const short = url.match(/youtu\.be\/([^?&]+)/);
+        if (short) return short[1];
+        // youtube.com/watch?v=ID format
         const m = url.match(/[?&]v=([^&]+)/);
         return m ? m[1] : null;
     }
-
+ 
     // Timer
     let secs = 15;
     const total = 251;
     const circle = document.getElementById('progCircle');
     const btn = document.getElementById('watchBtn');
-
+ 
     const timer = setInterval(() => {
         secs--;
         document.getElementById('timerNum').textContent = secs;
         circle.style.strokeDashoffset = total - (total * secs / 15);
-
+ 
         if (secs <= 0) {
             clearInterval(timer);
             btn.classList.add('ready');
             btn.textContent = '▶ ভিডিও দেখুন';
         }
     }, 1000);
-
+ 
     function showVideo() {
         if (secs > 0) return;
         document.getElementById('adSection').style.display = 'none';
@@ -261,7 +266,7 @@
             document.getElementById('videoFrame').src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
         }
     }
-
+ 
     function shareVideo() {
         if (navigator.share) {
             navigator.share({ title: title, url: window.location.href });
