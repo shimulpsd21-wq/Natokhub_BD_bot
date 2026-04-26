@@ -250,7 +250,7 @@
     </style>
 </head>
 <body>
-
+ 
 <div class="header">
     <div class="logo">
         <div class="logo-icon">N</div>
@@ -258,50 +258,52 @@
     </div>
     <span style="font-size:20px;">🎬</span>
 </div>
-
+ 
 <div class="search-wrap">
     <div class="search-box">
         <span>🔍</span>
         <input type="text" placeholder="সার্চ করুন..." id="searchInput" oninput="renderAll()">
     </div>
 </div>
-
+ 
 <div class="tabs">
     <button class="tab active" onclick="setTab('all', this)">ALL</button>
     <button class="tab" onclick="setTab('natok', this)">NATOK</button>
     <button class="tab" onclick="setTab('music', this)">MUSIC</button>
     <button class="tab" onclick="setTab('funny', this)">FUNNY</button>
 </div>
-
+ 
 <div class="container" id="mainContainer"></div>
-
+ 
 <!-- ✅ videos.js থেকে সব data আসে — ওই file এ গিয়ে link add করুন -->
 <script src="videos.js"></script>
 <script>
 function getYTId(url) {
     if (!url) return null;
+    const short = url.match(/youtu\.be\/([^?&]+)/);
+    if (short) return short[1];
     const m = url.match(/[?&]v=([^&]+)/);
     return m ? m[1] : null;
 }
 function getThumb(ytId) {
     return ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null;
 }
-
+ 
 let currentTab = 'all';
 let openSeries = {};
-
+ 
 function setTab(tab, el) {
     currentTab = tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     renderAll();
 }
-
+ 
 function toggleSeries(id) {
     openSeries[id] = !openSeries[id];
     renderAll();
 }
-
+ 
 function goWatch(youtubeUrl, title) {
     if (!youtubeUrl || youtubeUrl.includes('YOUTUBE_ID_HERE')) {
         alert('ভিডিও link এখনো add করা হয়নি!');
@@ -311,24 +313,24 @@ function goWatch(youtubeUrl, title) {
     localStorage.setItem('watchTitle', title);
     window.location.href = 'watch.html';
 }
-
+ 
 function renderAll() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     const container = document.getElementById('mainContainer');
     let html = '';
-
+ 
     const filteredSeries = series.filter(s => {
         if (currentTab !== 'all' && s.category !== currentTab) return false;
         if (q && !s.name.toLowerCase().includes(q)) return false;
         return true;
     });
-
+ 
     const filteredVideos = videos.filter(v => {
         if (currentTab !== 'all' && v.category !== currentTab) return false;
         if (q && !v.title.toLowerCase().includes(q)) return false;
         return true;
     });
-
+ 
     if (filteredSeries.length > 0) {
         html += `<div class="section-title">নাটক / সিরিজ</div>`;
         filteredSeries.forEach(s => {
@@ -368,7 +370,7 @@ function renderAll() {
             </div>`;
         });
     }
-
+ 
     if (filteredVideos.length > 0) {
         html += `<div class="section-title" style="margin-top:16px">ভিডিও</div>`;
         html += `<div class="video-grid">`;
@@ -390,14 +392,14 @@ function renderAll() {
         });
         html += `</div>`;
     }
-
+ 
     if (filteredSeries.length === 0 && filteredVideos.length === 0) {
         html = `<div class="empty">কোনো ভিডিও পাওয়া যায়নি 😔</div>`;
     }
-
+ 
     container.innerHTML = html;
 }
-
+ 
 renderAll();
 </script>
 </body>
