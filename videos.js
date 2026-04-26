@@ -6,13 +6,14 @@
 const series = [
     {
         id: "bp5",                      // ✏️ যেকোনো unique নাম (বাংলিশ, space ছাড়া)
-        name: "Bachelor Point Season 5", // ✏️ নাটকের নাম
-        category: "natok",              // ✏️ natok / music / funny
+        name: " new natok", // ✏️ নাটকের নাম
+        category: "Update",              // ✏️ natok / music / funny
         totalEp: 2,                     // ✏️ মোট কতটা episode আছে
         episodes: [
             // ✏️ নতুন episode যোগ করতে নিচের একটা line copy করে paste করুন
-            { ep: 1, title: "এপিসোড-১", youtube: "https://www.youtube.com/watch?v=YOUTUBE_ID_HERE" },
-            { ep: 2, title: "এপিসোড-২", youtube: "https://www.youtube.com/watch?v=YOUTUBE_ID_HERE" },
+            { ep: 1, title: "natok 1", url: "https://youtu.be/5EW5tCqw4FU?si=KIZMWpp1QMDKTnT1" },
+            { ep: 2, title: "natok 2", url: "https://youtu.be/aCbtT9VhU0c?si=cH4E99G6FSoTttLj" },
+    ]
             // এখানে নতুন episode add করুন ↑
         ]
     },
