@@ -5,17 +5,16 @@
 // ✅ নতুন SERIES/NATOK যোগ করতে নিচের format copy করুন
 const series = [
     {
-        id: "bp5",                      // ✏️ যেকোনো unique নাম (বাংলিশ, space ছাড়া)
-        name: " new natok", // ✏️ নাটকের নাম
-        category: "Update",              // ✏️ natok / music / funny
-        totalEp: 2,                     // ✏️ মোট কতটা episode আছে
+        id: "bp5",
+        name: "new natok",
+        category: "Update",
+        totalEp: 2,
         episodes: [
-            // ✏️ নতুন episode যোগ করতে নিচের একটা line copy করে paste করুন
-            { ep: 1, title: "natok 1", url: "https://youtu.be/5EW5tCqw4FU?si=KIZMWpp1QMDKTnT1" },
-            { ep: 2, title: "natok 2", url: "https://youtu.be/aCbtT9VhU0c?si=cH4E99G6FSoTttLj" },
-    ]
-            // এখানে নতুন episode add করুন ↑
+            { ep: 1, title: "natok 1", youtube: "https://youtu.be/5EW5tCqw4FU?si=KIZMWpp1QMDKTnT1" },
+            { ep: 2, title: "natok 2", youtube: "https://youtu.be/aCbtT9VhU0c?si=cH4E99G6FSoTttLj" },
         ]
+    },
+];
     },
 
     // ✏️ নতুন নাটক/সিরিজ যোগ করতে নিচের block copy করে উপরে paste করুন:
