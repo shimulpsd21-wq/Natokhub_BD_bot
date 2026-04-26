@@ -228,6 +228,9 @@
     document.getElementById('headerTitle').textContent = title;
  
     function getYTId(url) {
+        if (!url) return null;
+        const short = url.match(/youtu\.be\/([^?&]+)/);
+        if (short) return short[1];
         const m = url.match(/[?&]v=([^&]+)/);
         return m ? m[1] : null;
     }
