@@ -5,18 +5,15 @@
 // ✅ নতুন SERIES/NATOK যোগ করতে নিচের format copy করুন
 const series = [
     {
-        id: "Natok 1",
-        name: "new natok",
-        category: "Natok",
+        id: "natok1",
+        name: "New Natok",
+        category: "natok",
         totalEp: 2,
         episodes: [
             { ep: 1, title: "natok 1", youtube: "https://youtu.be/5EW5tCqw4FU?si=KIZMWpp1QMDKTnT1" },
-            { ep: 2, title: "natok 2", youtube: "https://youtu.be/aCbtT9VhU0c?si=cH4E99G6FSoTttLj" },
+            { ep: 2, title: "natok 2", youtube: "https://youtu.be/aCbtT9VhU0c?si=sOeI1Flm8CVvUTUK" },
         ]
     },
-];
-    },
-
     // ✏️ নতুন নাটক/সিরিজ যোগ করতে নিচের block copy করে উপরে paste করুন:
     /*
     {
@@ -30,7 +27,6 @@ const series = [
     },
     */
 ];
-
 
 // ✅ Single VIDEO (movie/funny/music) যোগ করতে নিচে লিখুন
 const videos = [
