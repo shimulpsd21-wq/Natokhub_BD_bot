@@ -6,6 +6,7 @@ from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes, ConversationHandler
 )
+from pymongo import MongoClient
 
 # ─── লগিং ───
 logging.basicConfig(
@@ -17,9 +18,13 @@ logger = logging.getLogger(__name__)
 # ─── কনফিগ ───
 BOT_TOKEN = "8737107611:AAG7Sn9xfFFx-9xmylMu4bt9Z89byRvvcpM"
 ADMIN_ID = 7200936473
-STORAGE_CHANNEL = -1003884329619
-DATA_FILE = "episodes.json"
-WEB_URL = os.getenv("WEB_URL", "https://natokhub-bot.onrender.com")  # Deploy করার পর URL দেবে
+MONGO_URI = os.getenv("MONGO_URI")
+WEB_URL = os.getenv("WEB_URL", "https://natokhub-bd-bot-1.onrender.com")
+
+# ─── MongoDB ───
+client = MongoClient(MONGO_URI)
+db = client["natokhub"]
+episodes_col = db["episodes"]
 
 # ─── কনভার্সেশন স্টেট ───
 WAIT_EP_NUMBER, WAIT_EP_TITLE, WAIT_EP_THUMB, WAIT_EP_VIDEO = range(4)
@@ -28,27 +33,29 @@ WAIT_EP_NUMBER, WAIT_EP_TITLE, WAIT_EP_THUMB, WAIT_EP_VIDEO = range(4)
 #  ডেটা ফাংশন
 # ══════════════════════════════════════════
 
-def load_data():
-    if not os.path.exists(DATA_FILE):
-        return {"episodes": []}
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+def load_episodes():
+    return list(episodes_col.find({}, {"_id": 0}).sort("number", -1))
 
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def save_episode(ep):
+    episodes_col.update_one(
+        {"number": ep["number"]},
+        {"$set": ep},
+        upsert=True
+    )
+
+def delete_episode(number):
+    episodes_col.delete_one({"number": number})
 
 def is_admin(user_id: int) -> bool:
     return user_id == ADMIN_ID
 
 # ══════════════════════════════════════════
-#  ইউজার — /start ও মেইন মেনু
+#  ইউজার — /start
 # ══════════════════════════════════════════
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    data = load_data()
-    episodes = sorted(data["episodes"], key=lambda x: x["number"], reverse=True)
+    episodes = load_episodes()
 
     if not episodes:
         await update.message.reply_text(
@@ -62,8 +69,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-    # প্রতিটা এপিসোড আলাদা মেসেজে থাম্বনেইল সহ পাঠাও
-    for ep in episodes[:8]:  # সর্বোচ্চ ৮টা দেখাবে
+    for ep in episodes[:8]:
         keyboard = [[InlineKeyboardButton(
             f"▶️ Episode {ep['number']} দেখুন",
             callback_data=f"watch_{ep['number']}"
@@ -78,16 +84,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
         except Exception:
-            # থাম্বনেইল না থাকলে text দিয়ে দেখাও
             await update.message.reply_text(
                 caption,
                 parse_mode="Markdown",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
 
-
 # ══════════════════════════════════════════
-#  ওয়াচ বাটন ক্লিক — অ্যাড দেখানো
+#  ওয়াচ বাটন
 # ══════════════════════════════════════════
 
 async def watch_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -95,9 +99,6 @@ async def watch_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     ep_number = int(query.data.split("_")[1])
-    context.user_data["pending_ep"] = ep_number
-
-    # Mini App URL — এই পেজে অ্যাড দেখাবে
     ad_url = f"{WEB_URL}/ad?ep={ep_number}&user={query.from_user.id}"
 
     keyboard = [[InlineKeyboardButton(
@@ -111,13 +112,11 @@ async def watch_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-
 # ══════════════════════════════════════════
-#  ওয়েব অ্যাপ থেকে ডেটা আসলে ভিডিও পাঠাও
+#  ওয়েব অ্যাপ থেকে ভিডিও পাঠাও
 # ══════════════════════════════════════════
 
 async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Mini App থেকে অ্যাড দেখা শেষ হলে এখানে আসবে"""
     data_str = update.effective_message.web_app_data.data
     try:
         info = json.loads(data_str)
@@ -126,8 +125,7 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।")
         return
 
-    data = load_data()
-    ep = next((e for e in data["episodes"] if e["number"] == ep_number), None)
+    ep = episodes_col.find_one({"number": ep_number}, {"_id": 0})
 
     if not ep:
         await update.message.reply_text("❌ এপিসোড পাওয়া যায়নি!")
@@ -149,7 +147,6 @@ async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"❌ ভিডিও পাঠাতে সমস্যা হয়েছে: {str(e)}")
 
-
 # ══════════════════════════════════════════
 #  অ্যাডমিন — এপিসোড অ্যাড
 # ══════════════════════════════════════════
@@ -160,11 +157,10 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     await update.message.reply_text(
-        "➕ *নতুন এপিসোড অ্যাড*\n\nএপিসোড নম্বর দিন:\n_(উদাহরণ: 88)_\n\n/cancel — বাতিল",
+        "➕ *নতুন এপিসোড অ্যাড*\n\nএপিসোড নম্বর দিন:\n\n/cancel — বাতিল",
         parse_mode="Markdown"
     )
     return WAIT_EP_NUMBER
-
 
 async def got_ep_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
@@ -173,43 +169,38 @@ async def got_ep_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return WAIT_EP_NUMBER
 
     ep_num = int(text)
-    data = load_data()
-    if any(e["number"] == ep_num for e in data["episodes"]):
+    if episodes_col.find_one({"number": ep_num}):
         await update.message.reply_text(f"⚠️ Episode {ep_num} আগেই আছে! অন্য নম্বর দিন:")
         return WAIT_EP_NUMBER
 
     context.user_data["new_ep"] = {"number": ep_num}
     await update.message.reply_text(
-        f"✅ EP {ep_num}\n\nএখন *টাইটেল* দিন:\n_(উদাহরণ: রুম ক্রাইসিস)_",
+        f"✅ EP {ep_num}\n\nএখন *টাইটেল* দিন:",
         parse_mode="Markdown"
     )
     return WAIT_EP_TITLE
-
 
 async def got_ep_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
     title = update.message.text.strip()
     context.user_data["new_ep"]["title"] = title
     await update.message.reply_text(
-        f"✅ টাইটেল: *{title}*\n\nএখন *থাম্বনেইল ছবি* পাঠান (Photo হিসেবে):",
+        f"✅ টাইটেল: *{title}*\n\nএখন *থাম্বনেইল ছবি* পাঠান:",
         parse_mode="Markdown"
     )
     return WAIT_EP_THUMB
 
-
 async def got_ep_thumb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message.photo:
-        await update.message.reply_text("❌ ছবি পাঠান! (Photo হিসেবে, file হিসেবে না)")
+        await update.message.reply_text("❌ ছবি পাঠান!")
         return WAIT_EP_THUMB
 
     photo = update.message.photo[-1]
     context.user_data["new_ep"]["thumb_file_id"] = photo.file_id
-
     await update.message.reply_text(
         "✅ থাম্বনেইল পেয়েছি!\n\nএখন *ভিডিও ফাইল* পাঠান:",
         parse_mode="Markdown"
     )
     return WAIT_EP_VIDEO
-
 
 async def got_ep_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message.video and not update.message.document:
@@ -220,22 +211,17 @@ async def got_ep_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["new_ep"]["video_file_id"] = video.file_id
 
     ep = context.user_data["new_ep"]
-    data = load_data()
-    data["episodes"].append(ep)
-    save_data(data)
+    save_episode(ep)
 
     await update.message.reply_text(
-        f"✅ *সফলভাবে অ্যাড হয়েছে!*\n\n"
-        f"📺 Episode {ep['number']} — {ep['title']}",
+        f"✅ *সফলভাবে অ্যাড হয়েছে!*\n\n📺 Episode {ep['number']} — {ep['title']}",
         parse_mode="Markdown"
     )
     return ConversationHandler.END
 
-
 async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ বাতিল।")
     return ConversationHandler.END
-
 
 # ══════════════════════════════════════════
 #  অ্যাডমিন — ডিলিট ও লিস্ট
@@ -256,24 +242,19 @@ async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ সঠিক নম্বর দিন!")
         return
 
-    data = load_data()
-    ep = next((e for e in data["episodes"] if e["number"] == ep_num), None)
-    if not ep:
+    if not episodes_col.find_one({"number": ep_num}):
         await update.message.reply_text(f"❌ Episode {ep_num} নেই!")
         return
 
-    data["episodes"] = [e for e in data["episodes"] if e["number"] != ep_num]
-    save_data(data)
+    delete_episode(ep_num)
     await update.message.reply_text(f"🗑️ Episode {ep_num} ডিলিট হয়েছে।")
-
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
         await update.message.reply_text("❌ পারমিশন নেই!")
         return
 
-    data = load_data()
-    episodes = sorted(data["episodes"], key=lambda x: x["number"])
+    episodes = list(episodes_col.find({}, {"_id": 0}).sort("number", 1))
 
     if not episodes:
         await update.message.reply_text("📭 কোনো এপিসোড নেই।")
@@ -284,7 +265,6 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lines.append(f"EP {ep['number']} — {ep['title']}")
 
     await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
-
 
 # ══════════════════════════════════════════
 #  মেইন
