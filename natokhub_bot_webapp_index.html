@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bachelor Point</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src='//libtl.com/sdk.js' data-zone='10924924' data-sdk='show_10924924'></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0f0f1a;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .logo span { color: #4ade80; }
+
+        .subtitle {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        /* ── STEP 1: অ্যাড দেখার কার্ড ── */
+        .ad-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 16px;
+            padding: 28px 20px;
+            margin-bottom: 20px;
+        }
+
+        .ep-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50px;
+            padding: 6px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .ad-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .ad-desc {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* টাইমার */
+        .timer-wrap {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .timer-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: conic-gradient(#4ade80 0%, #1a1a2e 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            position: relative;
+        }
+
+        .timer-circle::before {
+            content: '';
+            position: absolute;
+            width: 54px;
+            height: 54px;
+            background: #1a1a2e;
+            border-radius: 50%;
+        }
+
+        .timer-num {
+            position: relative;
+            z-index: 1;
+            font-size: 22px;
+            font-weight: bold;
+            color: #4ade80;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* বাটন */
+        .btn-watch {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-watch:active { opacity: 0.85; }
+
+        .btn-continue {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn-continue:active { opacity: 0.85; }
+
+        /* ── STEP 2: সফল স্ক্রিন ── */
+        .success-screen {
+            display: none;
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px 24px;
+            color: #333;
+        }
+
+        .check-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #4ade80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #111;
+        }
+
+        .success-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .success-note {
+            font-size: 12px;
+            color: #e53e3e;
+            margin-bottom: 24px;
+        }
+
+        .btn-inbox {
+            width: 100%;
+            padding: 16px;
+            background: #4ade80;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .ads-label {
+            font-size: 11px;
+            color: #555;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">Bachelor <span>Point</span></div>
+    <div class="subtitle">Season 5 — Official Bot</div>
+
+    <!-- STEP 1: অ্যাড কার্ড -->
+    <div class="ad-card" id="adCard">
+        <div class="ep-badge" id="epBadge">Episode ...</div>
+        <div class="ad-title">ভিডিও দেখতে চান?</div>
+        <div class="ad-desc">নিচের বাটনে ক্লিক করুন,<br>একটি ছোট অ্যাড দেখুন,<br>তারপর ভিডিও পাঠিয়ে দেওয়া হবে।</div>
+
+        <!-- টাইমার (অ্যাড চলাকালীন) -->
+        <div class="timer-wrap" id="timerWrap">
+            <div class="timer-circle" id="timerCircle">
+                <span class="timer-num" id="timerNum">15</span>
+            </div>
+            <div class="timer-label">অপেক্ষা করুন...</div>
+        </div>
+
+        <button class="btn-watch" id="btnWatch" onclick="startAd1()">
+            🎬 অ্যাড দেখুন ও ভিডিও পান
+        </button>
+
+        <button class="btn-continue" id="btnContinue" onclick="startAd2()">
+            ✅ Continue করুন
+        </button>
+    </div>
+
+    <!-- STEP 2: সফল স্ক্রিন -->
+    <div class="success-screen" id="successScreen">
+        <div class="check-circle">✓</div>
+        <div class="success-title">সফলভাবে সম্পন্ন হয়েছে!</div>
+        <div class="success-desc">অ্যাড দেখা সফল হয়েছে! ভিডিওটি পেতে ইনবক্স চেক করুন।</div>
+        <div class="success-note">নোট: এই ভিডিওটি আগামী ২৪ ঘণ্টার জন্য লক করা হয়েছে।</div>
+        <button class="btn-inbox" onclick="sendToBotAndClose()">ইনবক্স চেক করুন</button>
+        <div class="ads-label">ads by Monetag</div>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+
+    // URL থেকে ep নম্বর নাও
+    const params = new URLSearchParams(window.location.search);
+    const epNum = params.get('ep') || '?';
+    document.getElementById('epBadge').textContent = `Episode ${epNum}`;
+
+    let ad1Done = false;
+    let timerInterval = null;
+
+    function startAd1() {
+        document.getElementById('btnWatch').style.display = 'none';
+        document.getElementById('timerWrap').style.display = 'block';
+
+        // ১ম অ্যাড শো
+        show_10924924().then(() => {
+            ad1Done = true;
+        }).catch(() => {
+            ad1Done = true;
+        });
+
+        // ১৫ সেকেন্ড টাইমার
+        let count = 15;
+        updateTimer(count);
+        timerInterval = setInterval(() => {
+            count--;
+            updateTimer(count);
+            if (count <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('timerWrap').style.display = 'none';
+                document.getElementById('btnContinue').style.display = 'block';
+            }
+        }, 1000);
+    }
+
+    function updateTimer(count) {
+        document.getElementById('timerNum').textContent = count;
+        const pct = ((15 - count) / 15) * 100;
+        document.getElementById('timerCircle').style.background =
+            `conic-gradient(#4ade80 ${pct}%, #1a1a2e ${pct}%)`;
+    }
+
+    function startAd2() {
+        document.getElementById('btnContinue').style.display = 'none';
+
+        // ২য় অ্যাড শো
+        show_10924924().then(() => {
+            showSuccess();
+        }).catch(() => {
+            showSuccess();
+        });
+
+        // ৫ সেকেন্ড পর যাইহোক success দেখাও
+        setTimeout(showSuccess, 5000);
+    }
+
+    function showSuccess() {
+        document.getElementById('adCard').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+    }
+
+    function sendToBotAndClose() {
+        // বটে ডেটা পাঠাও
+        tg.sendData(JSON.stringify({ ep: epNum, action: 'send_video' }));
+    }
+</script>
+
+</body>
+</html>

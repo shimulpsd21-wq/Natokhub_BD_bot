@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: natokhub-webapp
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: PORT
+        value: 5000
+
+  - type: worker
+    name: natokhub-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
